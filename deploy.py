@@ -1,11 +1,7 @@
 from solcx import compile_standard, install_solc
 import json
 from web3 import Web3
-from dotenv import load_dotenv
-import os
 
-# Loading the dotenv module in order to be able to load environment variables from the .env file
-load_dotenv()
 
 # Loading the data from the contract file
 with open("./GMRSmartContract.sol", "r") as f:
@@ -126,7 +122,7 @@ class Transaction:
                 "gasPrice": w3.eth.gas_price,
                 "from": address,
                 "nonce": nonce,
-                "value": w3.eth.get_balance(self.receipt.contractAddress)
+                "value": w3.eth.get_balance(contract_address)
             }
         )
         signed_txn = w3.eth.account.sign_transaction(withdraw_transaction, private_key=key)
@@ -135,7 +131,7 @@ class Transaction:
 
 
 print("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t SMART CONTRACT")
-deploy_new_contract = input("Would you like to deploy a new contract? : ")
+deploy_new_contract = input("Would you like to deploy a new contract? (yes or no) : ")
 
 if deploy_new_contract.upper() == 'YES':
     account_address = input("Type in your public key : ")
@@ -217,7 +213,8 @@ else:
         print("\tYou have the following options,")
         print("\t\t\t1)Booking a time slot\n\t\t\t2)Check if a time slot is available\n\t\t\t3)Check if a certain "
               "machine exists\n\t\t\t4)Check if you have access to any particular machine at a specific time\n\t\t\t"
-              "5)Exit")
+              "5)Add a new machine to the gym\n\t\t\t6)Set the price for one time slot\n\t\t\t7)Withdraw from the "
+              "contract\n\t\t\t8)Exit")
         choice = int(input("Input a choice from the above : "))
         if choice == 1:
             print("\t The machines in the gym are as follows,")
@@ -258,4 +255,27 @@ else:
                 print("You do not have access.")
             print("-------------------------------------------------------------------")
         elif choice == 5:
+            print("If you are not the person who deployed this contract, this function will return an error.")
+            try:
+                machineName = input("Pick a machine : ")
+                contract.addMachine(account_address, private_key, contract_address, machineName)
+                print(f"Machine {machineName} has been added!")
+                print("-------------------------------------------------------------------")
+            except:
+                print("You are not the owner!")
+        elif choice == 6:
+            print("If you are not the person who deployed this contract, this function will return an error.")
+            try:
+                price = int(input("Enter the price for one time slot : "))
+                contract.setSlotPrice(account_address, private_key, contract_address, price)
+                print("-------------------------------------------------------------------")
+            except:
+                print("You are not the owner!")
+        elif choice == 7:
+            print("If you are not the person who deployed this contract, this function will return an error.")
+            contract_balance = w3.eth.get_balance(contract_address)
+            contract.withdraw(account_address, private_key, contract_address)
+            print(f"{contract_balance} wei has been transferred to your wallet.")
+            print("-------------------------------------------------------------------")
+        elif choice == 8:
             break
